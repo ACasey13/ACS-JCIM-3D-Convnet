@@ -1,0 +1,1 @@
+Unfortunately, due to the lack of data permanance on the working directory of the compute system, updates to the model and data generation files were purged. The main difference is that the current files do not reference the data after being split into train, validation, and test sets after scaffold splitting. This was, however, done correctly in the associated publication. 

@@ -1,0 +1,109 @@
+You are in the 'EM_Convnet/create_dataset' directory.
+
+The hierarchy of this directory is:
+
+create_dataset
+         |
+         |-- data
+         |    |-- m_* (molecule directory)
+         |        |- input_density.cube
+         |        |- input_density.pot
+         |        |- smile
+         |        |- etc... (all files associated with edat process)
+         |        |- compare_(cube or pot) (contains plots of interpolated
+         |                                  data vs original data 
+         |                                  if produced)
+         |-- figs
+         |    |-- extent.png (histograms of molecular extents)
+         |-- inspection
+         |    |-- contains files detailing the status of the .h5 file 
+         |          being processed (generated from utils functions)
+         |-- non_volatile_data (small enough to save on $HOME 
+         |    |                  and not worry about purge)
+         |    |-- h5 stores
+         |-- source
+         |    |-- apple
+         |    |-- edat_scripts
+         |    |-- get_edat_prediction.py
+         |    |-- pipehead.py (runs gaussian and cheetah calculations; cheetah-related code removed)
+         |    |-- submit_me (PBS job submission of pipehead.py)
+         |-- utils
+              |-- interp_data.py (performs interpolation on 
+              |                      .cube/.pot files)
+              |-- compare_interp.py (creates comparison plots
+              |                       between interpolated and
+              |                       original .cube/.pot files)
+              |-- make_dirs_list.py (makes a list of successfull
+              |                       molecule directories in
+              |                       data (m_* directories))
+              |-- misc files for .h5 inspection
+
+
+--------------------------
+---  GENERAL WORKFLOW  ---
+--------------------------
+An h5 store contains molecular SMILES to be processed.
+Right now, three main stores exist, namely:
+    store-cands-cno-1-11.h5
+    store-cands-cno-12-shuffled.h5
+    store-cands-cno-17-shuffled.h5
+These are found in './non_volatile_data'.
+
+These stores are stacked with the 'v_stack_h5.py' file 
+found in './utils'.
+After stacking, duplicate SMILES are removed with 
+'remove_duplicates.py' in './utils' which produces
+an h5 file 'cands-concat-clean.h5' in './non_volatile_data'.
+
+'submit_me' in './source' calls a compute node
+(or job array), sets up the environment, and calls
+'pipehead.py' from './source'. This reads in the SMILES from
+'./non_volatile_data/cands-concat-clean.h5' performs
+gaussian and edat calculations and stores the results
+in the same file.
+
+'pipehead.py' progress and the .h5 files can be inspected
+with more functions in the './utils' directory.
+All inspection information is stored in './inspection'.
+
+Additionally, 'pipehead.py' will produce a directory
+for each molecule processed in './data' which will contain
+the .cube, .pot, and all other gaussian and edat files.
+
+Once the molecules are processed a list of good
+(successfull exit) molecule directories should be produced 
+by running './utils/make_dirs_list.py'. Note that this will
+produce a text file of the directory names and store the file
+in 'CNN_COLLAB/ml_models/data'. It is stored here so that it
+sits next to the ML models which will need to reference it 
+later.
+
+After a list of the good directories is achieved 
+information about the extent of the molecules can be viewed 
+with the './utils/view_extent.py' script. This will produce
+histograms stored in './figs', which should inform decisions 
+about interpolation parameters. 
+
+When ready, the .cube and .pot files for each molecule can 
+be interpolated into arbitrary (user defined) shapes via
+the './utils/interp_data.py' script. The interpolated data
+will be stored as text alongside the original .cube and .pot
+files in the directory of each molecule AND .npy files will
+be produced and stored in 'CNN_COLLAB/ml_models/data/{m_*}'.
+Again, this is acting under the assumption that the 
+ML models will use this information later.
+
+The interpolation can be inspected graphically for a specified
+molecule with the './utils/compare_interp.py' file.
+This will produce a series of plots showing the interpolated
+and original values of slices through the cube or pot file.
+These plots are stored in the './data/m_{}/compare_{cube/pot}'
+directory. That is, this directory will be created and stored
+with the rest of the gaussian/edat molecule information for
+any molecule specified.
+
+Finally, the filled in .h5 store can also be copied to 
+'EM_Convnet/ml_models/data' for easy access by the 
+ML models later.
+ 
+

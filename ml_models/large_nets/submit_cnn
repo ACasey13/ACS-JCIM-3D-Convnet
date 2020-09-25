@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+#PBS -l walltime=23:59:00
+#PBS -l select=1:ncpus=40:mpiprocs=40:ngpus=1
+#PBS -l place=scatter:excl
+#PBS -q frontier
+#PBS -V
+#PBS -j oe
+#PBS -A ARLAP01001YF6
+##PBS -r y
+##PBS -J 1-20
+
+model=vanilla_multi_2_s2
+
+echo 'Host Name:'
+echo `hostname`
+
+echo 'PBS working diretory:'
+echo "$PBS_O_WORKDIR"
+cd $PBS_O_WORKDIR
+
+echo 'loading anaconda/3...'
+module load $PROJECTS_HOME/datools/modulefiles/anaconda/3-containerless
+
+#echo 'appending path:'
+#echo -e '/p/work1/acasey/convnet/utils\n'
+echo 'appending path:'
+echo "$PBS_O_WORKDIR"
+
+export PYTHONPATH="$PYTHONPATH:$PBS_O_WORKDIR"
+
+echo -e '\nUPDATED PYTHON PATH:'
+echo "$PYTHONPATH"
+echo ""
+
+python $model.py
+
